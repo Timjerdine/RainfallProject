@@ -50,27 +50,28 @@ with st.form("my_form"):
 
 # 3. Traitement de la prédiction
 if submit_button:
-    # Création du dictionnaire avec les noms EXACTS du CSV original
-    # Note : Attention aux espaces dans 'pressure ', 'humidity ' et 'cloud '
+    # On crée le dictionnaire avec les noms EXACTS (espaces inclus)
     input_dict = {
-        'pressure ': pressure,
+        'pressure ': pressure,           # Notez l'espace après pressure
         'maxtemp': maxtemp,
         'temparature': temparature,
         'mintemp': mintemp,
         'dewpoint': dewpoint,
-        'humidity ': humidity,
-        'cloud ': cloud,
+        'humidity ': humidity,           # Notez l'espace après humidity
+        'cloud ': cloud,                 # Notez l'espace après cloud
         'sunshine': sunshine,
-        'winddirection': winddirection,
+        'winddirection': winddirection,  # Vérifiez s'il y a des espaces ici aussi
         'windspeed': windspeed
     }
     
-    # Transformation en DataFrame (ordre respecté via feature_names)
-    input_df = pd.DataFrame([input_dict])[feature_names]
+    # Création du DataFrame
+    input_df = pd.DataFrame([input_dict])
+    
+    # Réorganiser les colonnes pour correspondre au modèle
+    input_df = input_df[feature_names]
     
     # Prédiction
     prediction = model.predict(input_df)
-    probability = model.predict_proba(input_df)
 
     st.divider()
     
@@ -80,5 +81,6 @@ if submit_button:
     else:
         st.success(f"### ☀️ Résultat : PAS DE PLUIE")
         st.write(f"Probabilité de ciel sec : **{probability[0][0]:.2%}**")
+
 
 st.info("Note : Ce modèle utilise un RandomForestClassifier entraîné sur votre dataset Rainfall.")
