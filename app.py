@@ -3,84 +3,55 @@ import pandas as pd
 import pickle
 import numpy as np
 
-# Configuration de la page
 st.set_page_config(page_title="Rainfall Predictor", page_icon="🌧️")
 
-# 1. Fonction pour charger le modèle
+# Charger le modèle
 @st.cache_resource
 def load_model():
-    # Assurez-vous que le nom du fichier .pkl est EXACTEMENT celui-ci
     with open("rainfall_prediction_model.pkl", "rb") as f:
-        data = pickle.load(f)
-    return data
+        return pickle.load(f)
 
 try:
-    model_data = load_model()
-    model = model_data["model"]
-    # Les colonnes exactes attendues par votre RandomForest
-    feature_names = model_data["feature_names"]
+    data = load_model()
+    model = data["model"]
+    feature_names = data["feature_names"]
 except Exception as e:
     st.error(f"Erreur de chargement du modèle : {e}")
     st.stop()
 
 st.title("🌧️ Prédiction de Pluie")
-st.markdown("Saisissez les paramètres météo pour savoir s'il va pleuvoir ou non.")
+st.markdown("Saisissez les paramètres météo ci-dessous.")
 
-# 2. Formulaire de saisie
-with st.form("my_form"):
-    st.subheader("Paramètres Atmosphériques")
-    
+with st.form("input_form"):
     col1, col2 = st.columns(2)
-    
     with col1:
-        pressure = st.number_input("Pression (hPa)", value=1015.0, step=0.1)
-        maxtemp = st.number_input("Température Max (°C)", value=22.0, step=0.1)
-        temparature = st.number_input("Température Moyenne (°C)", value=18.0, step=0.1)
-        mintemp = st.number_input("Température Min (°C)", value=14.0, step=0.1)
-        dewpoint = st.number_input("Point de Rosée", value=12.0, step=0.1)
-
+        v1 = st.number_input("Pression (pressure)", value=1010.0)
+        v2 = st.number_input("Temp Max (maxtemp)", value=25.0)
+        v3 = st.number_input("Temp Moyenne (temparature)", value=20.0)
+        v4 = st.number_input("Temp Min (mintemp)", value=15.0)
+        v5 = st.number_input("Point de rosée (dewpoint)", value=12.0)
     with col2:
-        humidity = st.slider("Humidité (%)", 0, 100, 75)
-        cloud = st.slider("Couverture Nuageuse (%)", 0, 100, 50)
-        sunshine = st.number_input("Ensoleillement (heures)", value=5.0, step=0.1)
-        winddirection = st.number_input("Direction du vent (degrés)", value=180, step=1)
-        windspeed = st.number_input("Vitesse du vent (km/h)", value=15.0, step=0.1)
+        v6 = st.slider("Humidité (humidity)", 0, 100, 60)
+        v7 = st.slider("Nuages (cloud)", 0, 100, 40)
+        v8 = st.number_input("Ensoleillement (sunshine)", value=6.0)
+        v9 = st.number_input("Direction Vent (winddirection)", value=180)
+        v10 = st.number_input("Vitesse Vent (windspeed)", value=15.0)
+    
+    submit = st.form_submit_button("Lancer la prédiction")
 
-    submit_button = st.form_submit_button(label="Prédire")
-
-# 3. Traitement de la prédiction
-if submit_button:
-    # On crée le dictionnaire avec les noms EXACTS (espaces inclus)
-    input_dict = {
-        'pressure ': pressure,           # Notez l'espace après pressure
-        'maxtemp': maxtemp,
-        'temparature': temparature,
-        'mintemp': mintemp,
-        'dewpoint': dewpoint,
-        'humidity ': humidity,           # Notez l'espace après humidity
-        'cloud ': cloud,                 # Notez l'espace après cloud
-        'sunshine': sunshine,
-        'winddirection': winddirection,  # Vérifiez s'il y a des espaces ici aussi
-        'windspeed': windspeed
-    }
+if submit:
+    # Création du tableau de valeurs dans l'ORDRE EXACT du modèle
+    # On ignore les noms de colonnes du dictionnaire pour éviter les KeyError
+    values = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10]
     
-    # Création du DataFrame
-    input_df = pd.DataFrame([input_dict])
+    # On crée le DataFrame en imposant les noms de colonnes du modèle
+    input_df = pd.DataFrame([values], columns=feature_names)
     
-    # Réorganiser les colonnes pour correspondre au modèle
-    input_df = input_df[feature_names]
-    
-    # Prédiction
     prediction = model.predict(input_df)
-
-    st.divider()
     
+    st.divider()
     if prediction[0] == 1:
-        st.error(f"### 🌧️ Résultat : IL VA PLEUVOIR")
-        st.write(f"Probabilité de pluie : **{probability[0][1]:.2%}**")
+        st.error("### 🌧️ Résultat : IL VA PLEUVOIR")
     else:
-        st.success(f"### ☀️ Résultat : PAS DE PLUIE")
-        st.write(f"Probabilité de ciel sec : **{probability[0][0]:.2%}**")
+        st.success("### ☀️ Résultat : PAS DE PLUIE")
 
-
-st.info("Note : Ce modèle utilise un RandomForestClassifier entraîné sur votre dataset Rainfall.")
