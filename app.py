@@ -51,7 +51,8 @@ if submit:
     
     st.divider()
     if prediction[0] == 1:
-        st.error("### 🌧️ Résultat : IL VA PLEUVOIR")
+        st.error("### 🌧️ Résultat : IL VA PLEUVOIR!")
     else:
         st.success("### ☀️ Résultat : PAS DE PLUIE")
+
 
